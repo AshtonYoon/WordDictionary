@@ -18,3 +18,13 @@ D:\git\WordForSearch\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\W
 D:\git\WordForSearch\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.Properties.Resources.resources
 D:\git\WordForSearch\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.csproj.GenerateResource.Cache
 D:\git\WordForSearch\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.MinimizedButton.resources
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\bin\Debug\WindowsFormsApplication.exe.config
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.exe
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.pdb
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.csprojResolveAssemblyReference.cache
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.Form1.resources
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.MinimizedButton.resources
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.Properties.Resources.resources
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\obj\Debug\WindowsFormsApplication.csproj.GenerateResource.Cache
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\bin\Debug\WindowsFormsApplication.exe
+C:\Users\user\Documents\Visual Studio 2015\Projects\WordDictionary-master\WindowsFormsApplication\WindowsFormsApplication\bin\Debug\WindowsFormsApplication.pdb

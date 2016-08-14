@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Text;
 
 /// <summary>
 /// Eng to Kor 
@@ -16,41 +17,23 @@ namespace WindowsFormsApplication
 {
     public partial class Form1 : Form
     {
-        private string resultstring { get; set; }
-        private string[] PartOfSpeech = { "명사", "대명사", "형용사", "동사", "부사", "전치사", "접속사", "감탄사" };
-
-        public string WordForSearch { get; set; }
-        public Uri WordForUrl { get; set; }
-
-        private HttpWebRequest httpWebRequest;
-        private HttpWebResponse httpWebResponse;
-
-        private Stream responseStream;
-        private StreamReader responseStreamReader;
-
-        private string responseString;
-
-        private Point mCurrentPosition = new Point(0, 0);
-
         public Form1()
         {
             InitializeComponent();
-            
-            Rectangle workingArea = Screen.GetWorkingArea(this);
-            this.Location = new Point(0, workingArea.Bottom - Size.Height);
 
             this.TopMost = true;
-            //this.Width = 19;
-
-            button1.FlatAppearance.BorderSize = 0;
-
-            trackBar1.Value = 100;
-
         }
 
-        private void getWords(string _html)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            resultstring = null;
+            SetBottomLeft();
+        }
+
+        private void getKorWords(string _html)
+        {
+            //품사들 ^^
+            string[] PartOfSpeech = { "명사", "대명사", "형용사", "동사", "부사", "전치사", "접속사", "감탄사" };
+            string resultstring = null;
 
             //한글단어 뜻이 있는 클래스 추출하는 정규식
             Regex ExtKorClasses = new Regex("<span class=\"fnt_k0[0-9]\">.+</span>", RegexOptions.IgnoreCase & RegexOptions.IgnorePatternWhitespace);
@@ -77,9 +60,7 @@ namespace WindowsFormsApplication
 
             //특수문자 제거
             for (int i = 0; i < Words.Length; i++)
-            {
                 Words[i] = Regex.Replace(Words[i], "[^ㄱ-힗 ,]", String.Empty, RegexOptions.Singleline);
-            }
 
             //다듬는 작업
             for (int i = 1; i < 12; i++)
@@ -117,51 +98,71 @@ namespace WindowsFormsApplication
             richTextBox1.Text = resultstring;
         }
 
+        private void getEngWords(string _html)
+        {
+            Regex EngListTag = new Regex("<dl class=\"list_e2\">.+</dl>", RegexOptions.Singleline);
+            Regex _EngListTag = new Regex("<span class=\"fnt_k0[0-9]\">.+</span>", RegexOptions.Singleline);
+
+            Match EngListTagCollection = EngListTag.Match(_html);
+            Match _EngListTagCollection = _EngListTag.Match(EngListTagCollection.Value);
+
+            string resultString = _EngListTagCollection.Value;
+            resultString = System.Text.RegularExpressions.Regex.Replace(resultString, "<[^>]*>", "");
+            resultString = System.Text.RegularExpressions.Regex.Replace(resultString, "\r", "");
+            resultString = System.Text.RegularExpressions.Regex.Replace(resultString, "\n", "");
+            resultString = System.Text.RegularExpressions.Regex.Replace(resultString, "\t", "");
+
+            //SourceViewer.HtmlSource = resultString;
+            //SourceViewer sv = new SourceViewer();
+            //sv.Show();
+
+            richTextBox1.Text = resultString;
+        }
+
+        //Html소스 가져오기
         private void textBox1_KeyDown(object sender, KeyEventArgs e)
         {
             if (textBox1.Focused && (e.KeyCode == Keys.Enter))
             {
-                WordForSearch = textBox1.Text;
+                string SearchWord = textBox1.Text;
 
-                WordForUrl = new Uri("http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + WordForSearch);
-                httpWebRequest = (HttpWebRequest)WebRequest.Create(WordForUrl);
+                Uri WordUri = new Uri("http://endic.naver.com/search.nhn?sLn=kr&isOnlyViewEE=N&query=" + SearchWord);
+                HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(WordUri);
 
                 try
                 {
-                    httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                    responseStream = httpWebResponse.GetResponseStream();
-                    responseStreamReader = new StreamReader(responseStream);
+                    HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                    Stream responseStream = httpWebResponse.GetResponseStream();
+                    StreamReader responseStreamReader = new StreamReader(responseStream);
 
-                    responseString = responseStreamReader.ReadToEnd();
-                    
-                    getWords(responseString);
+                    string responseString = responseStreamReader.ReadToEnd();
+
+                    //입력된 단어의 언어 판별
+                    if (IsOnlyEnglish(SearchWord))
+                        getKorWords(responseString);
+                    else if (IsOnlyKor(SearchWord))
+                        getEngWords(responseString);
+                    else
+                        richTextBox1.Text = "일치하는 단어가 없습니다";
+
                     responseStream.Close();
                     responseStreamReader.Close();
                 }
-                catch 
+                catch
                 {
-                    richTextBox1.Text = "네트워크에 연결되어 있지 않습니다.";
-                }
-                finally
-                {
-                    responseStream.Close();
-                    responseStreamReader.Close();
-                    httpWebResponse.Dispose();
+                    richTextBox1.Text = "일치하는 단어가 없습니다";
                 }
             }
         }
 
+        //포커스 가지면 텍스트박스 안에 있는 글자 비워주기
         private void textBox1_Enter(object sender, EventArgs e)
         {
             textBox1.Clear();
         }
 
-        private void textBox1_Leave(object sender, EventArgs e)
-        {
-            textBox1.BackColor = Color.White;
-        }
-
         #region drag
+        private Point mCurrentPosition = new Point(0, 0);
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
@@ -181,59 +182,102 @@ namespace WindowsFormsApplication
         }
         #endregion
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            Rectangle workingArea = Screen.GetWorkingArea(this);
-            this.Location = new Point(0,  workingArea.Bottom - Size.Height);
-        }
-
-        private bool IsMinimized = false;
-        private void button1_Click(object sender, EventArgs e)
-        {/*
-            if (!IsMinimized)
-            {
-                this.Width = 19;
-                
-                IsMinimized = true;
-               
-                Rectangle workingArea = Screen.GetWorkingArea(this);
-                this.Location = new Point(0, workingArea.Bottom - Size.Height);
-            }
-            else
-            {
-                this.Width = 462;
-
-                IsMinimized = false;
-                
-                Rectangle workingArea = Screen.GetWorkingArea(this);
-                this.Location = new Point(0,  workingArea.Bottom - Size.Height); 
-            }*/
-
-            this.Visible = false;
-            MinimizedButton mb = new MinimizedButton();
-            
-            Rectangle workingArea = Screen.GetWorkingArea(this);
-            mb.Visible = true;
-            mb.Location = new Point(0, workingArea.Bottom - mb.Size.Height);
-        }
-
-        private void button1_MouseEnter(object sender, EventArgs e)
-        {
-            toolTip1.SetToolTip(button1, "버튼을 클릭해주세요 :)");
-        }
-
-        private void trackBar1_ValueChanged(object sender, EventArgs e)
-        {
-            this.Opacity = trackBar1.Value / 100f;
-        }
-
+        //완전히 종료
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Process[] ProcessList = Process.GetProcessesByName("WindowsFormsApplication");
             if (ProcessList.Length > 0)
                 ProcessList[0].Kill();
         }
+
+        private void Form1_MouseUp(object sender, MouseEventArgs e)
+        {
+            
+        }
+
+        /// <summary>
+        /// 알파벳으로 된 영문 문자열인지 여부를 알아내는 함수
+        /// </summary>
+        /// <param name="KeyWord"></param>
+        /// <returns>맞으면 true 틀리면 false</returns>
+        public bool IsOnlyEnglish(string KeyWord)
+        {
+            StringBuilder stringBuilder = new StringBuilder(KeyWord);
+            for (int i = 0; i < KeyWord.Length; i++)
+            {
+                string a = char.GetUnicodeCategory(stringBuilder[i]).ToString();
+                if (a == "OtherLetter") 
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 한글로 된 한글 문자열인지 여부를 알아내는 함수
+        /// </summary>
+        /// <param name="KeyWord"></param>
+        /// <returns>맞으면 true 틀리면 false</returns>
+        public bool IsOnlyKor(string KeyWord)
+        {
+            foreach(char KeyWordCharacter in KeyWord)
+            {
+                if ((Regex.Match(KeyWordCharacter.ToString(), "[ㄱ-힗]")).Length == 0)
+                    return false;
+            }
+            return true;
+        }
+
+        private void minimize_button_MouseEnter(object sender, EventArgs e)
+        {
+            toolTip2.SetToolTip(minimize_button, "최소화");
+        }
+
+        private void close_button_MouseEnter(object sender, EventArgs e)
+        {
+            toolTip2.SetToolTip(close_button, "종료");
+        }
+
+        private void minimize_button_Click(object sender, EventArgs e)
+        {
+            this.Visible = false;
+            MinimizedButton mb = new MinimizedButton();
+
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            mb.Visible = true;
+            mb.Location = new Point(0, workingArea.Bottom - mb.Size.Height);
+        }
+
+        private void close_button_Click(object sender, EventArgs e)
+        {
+            Process[] ProcessList = Process.GetProcessesByName("WindowsFormsApplication");
+            if (ProcessList.Length > 0)
+                ProcessList[0].Kill();
+
+            this.Close();
+        }
+
+        private void SetTopLeft()
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            this.Location = new Point(0, workingArea.Top);
+        }
+
+        private void SetTopRight()
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            this.Location = new Point(workingArea.Right - Size.Width, workingArea.Top);
+        }
+
+        private void SetBottomLeft()
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            this.Location = new Point(0, workingArea.Bottom - Size.Height);
+        }
+
+        private void SetBottomRight()
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            this.Location = new Point(workingArea.Right - Size.Width, workingArea.Bottom - Size.Height);
+        }
     }
-    #region KorToEng
-    #endregion
 }
